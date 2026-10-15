@@ -1,0 +1,36 @@
+{% load listing_extras %}
+<footer class="mt-16 bg-charcoal text-white">
+  <div class="container-page grid gap-10 py-14 md:grid-cols-12">
+    <div class="md:col-span-5">
+      <span class="font-display text-2xl font-bold tracking-tight">{{ SITE.name_first }}<span class="text-amber">{{ SITE.name_second }}</span></span>
+      <p class="mt-4 max-w-sm text-[0.95rem] leading-relaxed text-white/65">Coches, casas y terrenos de vendedores reales en Guinea Ecuatorial. Busca, compara y habla directamente con quien vende.</p>
+      <a href="https://wa.me/{{ SITE.whatsapp }}" target="_blank" rel="noopener noreferrer" class="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-charcoal">{% icon 'whatsapp' 'ic ic-sm' %}Escríbenos por WhatsApp</a>
+    </div>
+    <div class="md:col-span-2">
+      <h3 class="mb-4 text-base font-semibold text-white">Buscar</h3>
+      <ul class="space-y-2.5 text-[0.95rem] text-white/70">
+        <li><a class="hover:text-amber" href="{% url 'listings:category' 'coches' %}">Coches</a></li>
+        <li><a class="hover:text-amber" href="{% url 'listings:category' 'casas' %}">Casas y apartamentos</a></li>
+        <li><a class="hover:text-amber" href="{% url 'listings:category' 'terrenos' %}">Terrenos</a></li>
+        <li><a class="hover:text-amber" href="{% url 'listings:publish_start' %}">Publicar un anuncio</a></li>
+      </ul>
+    </div>
+    <div class="md:col-span-2">
+      <h3 class="mb-4 text-base font-semibold text-white">Ciudades</h3>
+      <ul class="space-y-2.5 text-[0.95rem] text-white/70">
+        {% for c in footer_cities %}<li><a class="hover:text-amber" href="{% url 'listings:search' %}?ciudad={{ c.pk }}">{{ c.name }}</a></li>{% endfor %}
+      </ul>
+    </div>
+    <div class="md:col-span-3">
+      <h3 class="mb-4 text-base font-semibold text-white">Oficina</h3>
+      <ul class="space-y-3 text-[0.95rem] text-white/70">
+        <li class="flex items-start gap-2.5">{% icon 'pin' 'ic ic-sm mt-1' %}{{ SITE.location }}</li>
+        <li><a class="flex items-center gap-2.5 hover:text-amber" href="tel:{{ SITE.phone|cut:' ' }}">{% icon 'phone' 'ic ic-sm' %}{{ SITE.phone }}</a></li>
+        <li><a class="flex items-center gap-2.5 hover:text-amber" href="mailto:{{ SITE.email }}">{% icon 'mail' 'ic ic-sm' %}{{ SITE.email }}</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-white/10">
+    <div class="container-page py-5 text-sm text-white/45">© {% now "Y" %} {{ SITE.name_first }}{{ SITE.name_second }}. Todos los derechos reservados.</div>
+  </div>
+</footer>

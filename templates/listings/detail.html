@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block title %}{{ listing.title }} en {{ listing.city }} | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block meta_description %}{{ listing.get_operation_type_display }} · {{ listing|price }} · {{ listing.city }}. {{ listing.description|truncatechars:140 }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ listing.title }}{% endblock %}
+{% block og_description %}{{ listing|price }} · {{ listing.city }}{% endblock %}
+{% block og_image %}{% if images %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ images.0.image.url }}" />{% endif %}{% endblock %}
+{% block head_extra %}
+{% if is_hidden %}<meta name="robots" content="noindex" />{% endif %}
+<script type="application/ld+json">{{ json_ld }}</script>
+{% endblock %}
+
+{% block content_full %}
+<div class="container-page pb-28 pt-6 lg:pb-12">
+  {% if is_hidden %}<div class="mb-4 rounded-lg bg-amber/15 px-4 py-3 text-sm text-charcoal">Este anuncio no es público (estado: {{ listing.get_status_display }}). Solo tú puedes verlo.</div>{% endif %}
+  <nav class="mb-4 flex items-center gap-1.5 text-sm text-charcoal/55" aria-label="Ruta">
+    <a href="{% url 'listings:home' %}" class="hover:text-navy">Inicio</a>{% icon 'right' 'ic ic-sm' %}<a href="{% url 'listings:category' listing.category_segment %}" class="hover:text-navy">{{ listing.category_title }}</a>{% icon 'right' 'ic ic-sm' %}<span class="truncate text-charcoal/80">{{ listing.city }}</span>
+  </nav>
+
+  {# Galería #}
+  {% if images %}
+    <div class="grid gap-2 overflow-hidden rounded-2xl {% if images|length > 1 %}lg:h-[27rem] lg:grid-cols-4 lg:grid-rows-2{% endif %}">
+      <button type="button" data-photo="0" class="relative block aspect-[4/3] overflow-hidden bg-sand-200 {% if images|length > 1 %}lg:col-span-2 lg:row-span-2 lg:aspect-auto{% else %}lg:aspect-auto lg:h-[30rem]{% endif %}" aria-label="Ver foto 1 en grande"><img src="{{ images.0.image.url }}" alt="{{ listing.title }}" class="h-full w-full object-cover" /></button>
+      {% for img in images|slice:"1:5" %}
+        <button type="button" data-photo="{{ forloop.counter }}" class="relative hidden overflow-hidden bg-sand-200 lg:block" aria-label="Ver foto {{ forloop.counter|add:1 }} en grande"><img src="{{ img.image.url }}" alt="Foto {{ forloop.counter|add:1 }} de {{ listing.title }}" loading="lazy" class="h-full w-full object-cover transition-opacity hover:opacity-90" /></button>
+      {% endfor %}
+    </div>
+    {% if images|length > 1 %}<div class="mt-3 flex justify-end"><button type="button" data-photo="0" class="inline-flex items-center gap-2 rounded-full border border-navy/25 px-4 py-2 text-sm font-semibold text-navy hover:bg-sand">{% icon 'grid' 'ic ic-sm' %}Ver las {{ images|length }} fotos</button></div>{% endif %}
+  {% else %}
+    <div class="grid aspect-[16/7] place-items-center rounded-2xl bg-sand-200 text-charcoal/40">Este anuncio todavía no tiene fotos</div>
+  {% endif %}
+
+  <div class="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem]">
+    <div>
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="mb-2 inline-block rounded-md bg-sand px-2.5 py-1 text-sm font-medium text-navy">{{ listing.get_operation_type_display }}{% if listing.is_premium %} · Destacado{% endif %}</p>
+          <h1 class="text-3xl font-bold leading-tight text-navy md:text-4xl">{{ listing.title }}</h1>
+          <p class="mt-2 flex items-center gap-1.5 text-charcoal/65">{% icon 'pin' 'ic ic-sm' %}{{ listing.city }}{% if listing.address_zone %}, {{ listing.address_zone }}{% endif %}</p>
+        </div>
+        {% if user.is_authenticated and not is_hidden %}
+          <form method="post" action="{% url 'listings:toggle_favorite' listing.pk %}" class="shrink-0">{% csrf_token %}
+            <button aria-label="{% if is_favorite %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}" class="flex h-11 w-11 items-center justify-center rounded-full border transition-colors {% if is_favorite %}border-amber bg-amber text-charcoal{% else %}border-sand-200 text-charcoal/70 hover:bg-sand{% endif %}"><svg class="ic" {% if is_favorite %}style="fill:currentColor"{% endif %} aria-hidden="true"><use href="#i-heart"/></svg></button>
+          </form>
+        {% endif %}
+      </div>
+
+      {# Datos clave #}
+      <dl class="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-sand-200 sm:grid-cols-4">
+        {% if listing.category == 'coche' %}
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Año</dt><dd class="font-display text-xl font-semibold text-navy tnum">{{ details.year }}</dd></div>
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Kilometraje</dt><dd class="font-display text-xl font-semibold text-navy tnum">{{ details.mileage_km|xaf_number }} km</dd></div>
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Combustible</dt><dd class="font-display text-xl font-semibold text-navy">{{ details.get_fuel_type_display }}</dd></div>
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Transmisión</dt><dd class="font-display text-xl font-semibold text-navy">{{ details.get_transmission_display }}</dd></div>
+        {% elif listing.category == 'casa' %}
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Habitaciones</dt><dd class="font-display text-xl font-semibold text-navy tnum">{{ details.bedrooms }}</dd></div>
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Baños</dt><dd class="font-display text-xl font-semibold text-navy tnum">{{ details.bathrooms }}</dd></div>
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Superficie</dt><dd class="font-display text-xl font-semibold text-navy tnum">{{ details.area_m2|floatformat:"-1" }} m²</dd></div>
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Tipo</dt><dd class="font-display text-xl font-semibold text-navy">{{ details.get_property_type_display }}</dd></div>
+        {% elif listing.category == 'terreno' %}
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Superficie</dt><dd class="font-display text-xl font-semibold text-navy tnum">{{ details.area_m2|floatformat:"-1" }} m²</dd></div>
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Uso de suelo</dt><dd class="font-display text-xl font-semibold text-navy">{{ details.get_land_use_display }}</dd></div>
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Título</dt><dd class="font-display text-xl font-semibold text-navy">{{ details.has_title_deed|yesno:"Sí,No" }}</dd></div>
+          <div class="bg-sand p-4"><dt class="text-sm text-charcoal/55">Cercado</dt><dd class="font-display text-xl font-semibold text-navy">{{ details.is_fenced|yesno:"Sí,No" }}</dd></div>
+        {% endif %}
+      </dl>
+
+      {% if listing.description %}
+        <section class="mt-10"><h2 class="mb-3 text-xl font-semibold text-navy">Descripción</h2><p class="max-w-[68ch] whitespace-pre-line leading-relaxed text-charcoal/80">{{ listing.description }}</p></section>
+      {% endif %}
+
+      <section class="mt-10">
+        <h2 class="mb-3 text-xl font-semibold text-navy">Ficha completa</h2>
+        <dl class="grid gap-x-10 sm:grid-cols-2 [&>div]:flex [&>div]:justify-between [&>div]:gap-4 [&>div]:border-b [&>div]:border-sand-200 [&>div]:py-3 [&_dt]:text-charcoal/60 [&_dd]:text-right [&_dd]:font-medium">
+          {% if listing.category == 'coche' %}
+            <div><dt>Marca</dt><dd>{{ details.brand }}</dd></div><div><dt>Modelo</dt><dd>{{ details.model }}</dd></div>
+            <div><dt>Año</dt><dd>{{ details.year }}</dd></div><div><dt>Kilometraje</dt><dd>{{ details.mileage_km|xaf_number }} km</dd></div>
+            <div><dt>Combustible</dt><dd>{{ details.get_fuel_type_display }}</dd></div><div><dt>Transmisión</dt><dd>{{ details.get_transmission_display }}</dd></div>
+            <div><dt>Condición</dt><dd>{{ details.get_condition_display }}</dd></div>
+            {% if details.color %}<div><dt>Color</dt><dd>{{ details.color }}</dd></div>{% endif %}
+            {% if details.doors %}<div><dt>Puertas</dt><dd>{{ details.doors }}</dd></div>{% endif %}
+            {% if details.engine_size_cc %}<div><dt>Cilindrada</dt><dd>{{ details.engine_size_cc }} cc</dd></div>{% endif %}
+          {% elif listing.category == 'casa' %}
+            <div><dt>Tipo</dt><dd>{{ details.get_property_type_display }}</dd></div><div><dt>Habitaciones</dt><dd>{{ details.bedrooms }}</dd></div>
+            <div><dt>Baños</dt><dd>{{ details.bathrooms }}</dd></div><div><dt>Superficie</dt><dd>{{ details.area_m2|floatformat:"-1" }} m²</dd></div>
+            {% if details.floor_number is not None %}<div><dt>Piso</dt><dd>{{ details.floor_number }}</dd></div>{% endif %}
+            <div><dt>Amueblado</dt><dd>{{ details.is_furnished|yesno:"Sí,No" }}</dd></div><div><dt>Parqueo</dt><dd>{{ details.has_parking|yesno:"Sí,No" }}</dd></div><div><dt>Jardín</dt><dd>{{ details.has_garden|yesno:"Sí,No" }}</dd></div>
+          {% elif listing.category == 'terreno' %}
+            <div><dt>Superficie</dt><dd>{{ details.area_m2|floatformat:"-1" }} m²</dd></div><div><dt>Uso de suelo</dt><dd>{{ details.get_land_use_display }}</dd></div>
+            <div><dt>Título de propiedad</dt><dd>{{ details.has_title_deed|yesno:"Sí,No" }}</dd></div><div><dt>Cercado</dt><dd>{{ details.is_fenced|yesno:"Sí,No" }}</dd></div>
+          {% endif %}
+          <div><dt>Publicado</dt><dd>{{ listing.created_at|date:"d/m/Y" }}</dd></div><div><dt>Visitas</dt><dd class="tnum">{{ listing.views_count }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="mb-3 text-xl font-semibold text-navy">Ubicación aproximada</h2>
+        {% if map_bbox %}
+          <div class="overflow-hidden rounded-xl border border-sand-200"><iframe title="Mapa de ubicación" class="h-72 w-full" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox={{ map_bbox }}&amp;layer=mapnik&amp;marker={{ listing.latitude }}%2C{{ listing.longitude }}"></iframe></div>
+        {% else %}
+          <p class="text-charcoal/70">{{ listing.city }}{% if listing.address_zone %}, {{ listing.address_zone }}{% endif %}.</p>
+          <a class="mt-2 inline-flex items-center gap-1.5 font-semibold text-navy hover:text-amber-600" target="_blank" rel="noopener" href="https://www.openstreetmap.org/search?query={{ listing.address_zone|urlencode }}%20{{ listing.city.name|urlencode }}%20Guinea%20Ecuatorial">{% icon 'pin' 'ic ic-sm' %}Ver la zona en el mapa</a>
+        {% endif %}
+      </section>
+    </div>
+
+    <aside class="hidden h-fit rounded-2xl border border-sand-200 p-6 shadow-lift lg:sticky lg:top-24 lg:block">
+      <p class="font-display text-[2rem] font-bold leading-none text-navy tnum">{{ listing|price }}</p>
+      {% if listing.operation_type == 'alquiler' %}<p class="mt-1 text-sm text-charcoal/55">al mes</p>{% endif %}
+      <div class="my-5 flex items-center gap-3 border-t border-sand-200 pt-5">
+        <span class="flex h-11 w-11 items-center justify-center rounded-full bg-sand font-display text-lg font-semibold text-navy">{{ listing.display_contact_name|default:"A"|slice:":1"|upper }}</span>
+        <div><p class="font-semibold text-charcoal">{{ listing.display_contact_name|default:"Anunciante" }}</p><p class="text-sm text-charcoal/55">Responde por WhatsApp</p></div>
+      </div>
+      <div class="space-y-2.5">
+        {% whatsapp_url listing as wa %}
+        {% if wa %}<a href="{{ wa }}" target="_blank" rel="noopener noreferrer" class="flex w-full items-center justify-center gap-2 rounded-full bg-wa py-3.5 font-semibold text-white transition-colors hover:bg-wa-700">{% icon 'whatsapp' %}Escribir por WhatsApp</a>{% endif %}
+        {% if listing.display_phone %}<a href="tel:{{ listing.display_phone|digits }}" class="flex w-full items-center justify-center gap-2 rounded-full border border-navy/25 py-3.5 font-semibold text-navy transition-colors hover:bg-sand">{% icon 'phone' %}Llamar</a>{% endif %}
+      </div>
+      <p class="mt-5 text-sm leading-relaxed text-charcoal/55">Antes de pagar, ve el artículo en persona y comprueba los documentos.</p>
+    </aside>
+  </div>
+
+  {% if related %}
+  <section class="mt-16">
+    <h2 class="mb-6 text-2xl font-bold text-navy">Más anuncios en {{ listing.city }}</h2>
+    <div class="grid grid-cols-1 gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">{% for l in related %}{% include "listings/_card.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+</div>
+
+{# Barra de contacto fija en móvil #}
+<div class="fixed inset-x-0 bottom-0 z-30 border-t border-sand-200 bg-white/95 p-3 backdrop-blur lg:hidden">
+  <div class="mx-auto flex max-w-xl items-center gap-3">
+    <p class="min-w-0 flex-1 font-display text-lg font-bold leading-tight text-navy tnum">{{ listing|price }}{% if listing.operation_type == 'alquiler' %}<span class="block font-sans text-xs font-normal text-charcoal/55">al mes</span>{% endif %}</p>
+    {% if listing.display_phone %}<a href="tel:{{ listing.display_phone|digits }}" aria-label="Llamar" class="flex h-12 w-12 items-center justify-center rounded-full border border-navy/25 text-navy">{% icon 'phone' %}</a>{% endif %}
+    {% if wa %}<a href="{{ wa }}" target="_blank" rel="noopener noreferrer" class="flex h-12 items-center gap-2 rounded-full bg-wa px-5 font-semibold text-white">{% icon 'whatsapp' %}WhatsApp</a>{% endif %}
+  </div>
+</div>
+
+{# Visor de fotos #}
+<dialog id="lightbox" class="m-0 h-full max-h-none w-full max-w-none bg-charcoal/95 p-0 backdrop:bg-charcoal/90">
+  <div class="flex h-full flex-col">
+    <div class="flex items-center justify-between px-4 py-3 text-white"><span id="lb-count" class="text-sm tnum"></span><button type="button" id="lb-close" aria-label="Cerrar" class="rounded-full p-2 hover:bg-white/10">{% icon 'x' 'ic ic-lg' %}</button></div>
+    <div class="relative flex flex-1 items-center justify-center px-2 pb-6 sm:px-14">
+      <button type="button" id="lb-prev" aria-label="Foto anterior" class="absolute left-2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20">{% icon 'left' 'ic ic-lg' %}</button>
+      <img id="lb-img" alt="" class="max-h-[80vh] max-w-full rounded-lg object-contain" />
+      <button type="button" id="lb-next" aria-label="Foto siguiente" class="absolute right-2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20">{% icon 'right' 'ic ic-lg' %}</button>
+    </div>
+  </div>
+</dialog>
+{{ image_urls|json_script:"photo-urls" }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var urls = JSON.parse(document.getElementById('photo-urls').textContent), dlg = document.getElementById('lightbox');
+    if (!urls.length || !dlg.showModal) return;
+    var i = 0, img = document.getElementById('lb-img'), cnt = document.getElementById('lb-count');
+    function show(n) { i = (n + urls.length) % urls.length; img.src = urls[i]; cnt.textContent = (i + 1) + ' / ' + urls.length; }
+    document.querySelectorAll('[data-photo]').forEach(function (b) { b.addEventListener('click', function () { show(parseInt(b.dataset.photo, 10)); dlg.showModal(); }); });
+    document.getElementById('lb-close').addEventListener('click', function () { dlg.close(); });
+    document.getElementById('lb-prev').addEventListener('click', function () { show(i - 1); });
+    document.getElementById('lb-next').addEventListener('click', function () { show(i + 1); });
+    dlg.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') show(i - 1); if (e.key === 'ArrowRight') show(i + 1); });
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+  })();
+</script>
+{% endblock %}

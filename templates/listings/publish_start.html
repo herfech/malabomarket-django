@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block title %}Publicar anuncio | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-3xl py-4">
+  <h1 class="text-3xl font-bold text-navy md:text-4xl">¿Qué quieres publicar?</h1>
+  <p class="mt-2 text-charcoal/65">Elige la categoría. Después añades los datos y las fotos.</p>
+  <div class="mt-8 grid gap-3 sm:grid-cols-3">
+    {% for slug, label, icon_name in options %}
+      <a href="{% url 'listings:publish' slug %}" class="group flex flex-col gap-10 rounded-2xl border border-sand-200 p-6 transition-colors hover:border-navy hover:bg-sand">
+        <span class="text-navy">{% icon icon_name 'ic ic-lg' %}</span>
+        <span class="font-display text-xl font-semibold text-navy">{{ label }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

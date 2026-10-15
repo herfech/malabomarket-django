@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block title %}{{ listing.title }} | Oficina{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+{% include "office/_nav.html" %}
+<a href="{% url 'office:listings' %}" class="mb-3 inline-flex items-center gap-1 text-sm font-medium text-charcoal/60 hover:text-navy">{% icon 'left' 'ic ic-sm' %}Todos los anuncios</a>
+<h1 class="text-3xl font-bold text-navy">{{ listing.title }}</h1>
+<p class="mt-1 text-charcoal/60 tnum">n.º {{ listing.pk }} · {{ listing.category_title }} · {{ listing|price }}{% if listing.is_publicly_visible %} · <a href="{{ listing.get_absolute_url }}" class="font-medium text-navy hover:underline">Ver en la web</a>{% endif %}</p>
+<div class="mt-8 grid gap-10 lg:grid-cols-2">
+  <section class="space-y-8">
+    <div>
+      <h2 class="mb-3 text-xl font-semibold text-navy">Estado</h2>
+      <dl class="divide-y divide-sand-200 border-y border-sand-200 text-[0.95rem]">
+        <div class="flex justify-between py-2.5"><dt class="text-charcoal/60">Estado</dt><dd>{% if listing.is_expired %}Expirado{% else %}{{ listing.get_status_display }}{% endif %}</dd></div>
+        <div class="flex justify-between py-2.5"><dt class="text-charcoal/60">Plan</dt><dd>{{ listing.get_plan_display }}</dd></div>
+        <div class="flex justify-between py-2.5"><dt class="text-charcoal/60">Visible hasta</dt><dd class="tnum">{{ listing.expires_at|date:"d/m/Y"|default:"—" }}</dd></div>
+        <div class="flex justify-between py-2.5"><dt class="text-charcoal/60">Cliente</dt><dd>{{ listing.display_contact_name }}</dd></div>
+        <div class="flex justify-between py-2.5"><dt class="text-charcoal/60">Teléfono</dt><dd class="tnum">{{ listing.display_phone }}</dd></div>
+      </dl>
+      <form method="post" class="mt-4 flex items-center gap-2">{% csrf_token %}<input type="hidden" name="action" value="status" />
+        <select name="status" class="rounded-lg border border-sand-200 px-3 py-2 text-sm">{% for v, l in status_choices %}{% if v != 'expirado' %}<option value="{{ v }}" {% if listing.status == v %}selected{% endif %}>{{ l }}</option>{% endif %}{% endfor %}</select>
+        <button class="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-white">Cambiar estado</button>
+      </form>
+    </div>
+    <div class="rounded-2xl bg-sand p-5">
+      <h2 class="mb-1 text-lg font-semibold text-navy">Renovar o cambiar de plan</h2>
+      <p class="mb-3 text-sm text-charcoal/65">Registra un cobro en efectivo y se genera el recibo.</p>
+      <form method="post" class="space-y-3">{% csrf_token %}<input type="hidden" name="action" value="renew" />
+        {{ form.plan }}{{ form.notes }}
+        <button class="rounded-full bg-amber px-5 py-2.5 text-sm font-semibold text-charcoal hover:bg-amber-600">Registrar cobro y renovar</button>
+      </form>
+    </div>
+  </section>
+  <section>
+    <h2 class="mb-3 text-xl font-semibold text-navy">Pagos</h2>
+    {% if payments %}
+    <ul class="divide-y divide-sand-200 border-y border-sand-200">
+      {% for p in payments %}<li class="flex items-center justify-between gap-3 py-3"><div><p class="font-medium tnum">{{ p.plan_name }} · {{ p.amount|xaf_number }} XAF</p><p class="text-sm text-charcoal/55">{{ p.get_status_display }}{% if p.receipt_number %} · {{ p.receipt_number }}{% endif %} · {{ p.created_at|date:"d/m/Y" }}</p></div>{% if p.status != 'pendiente' %}<a href="{% url 'office:receipt' p.pk %}" class="text-sm font-semibold text-navy hover:underline">Recibo</a>{% else %}<a href="{% url 'office:payments' %}" class="text-sm font-semibold text-navy hover:underline">Cobrar</a>{% endif %}</li>{% endfor %}
+    </ul>
+    {% else %}<p class="rounded-xl bg-sand p-5 text-charcoal/65">Este anuncio no tiene pagos.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

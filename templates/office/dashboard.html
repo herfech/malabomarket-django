@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block title %}Oficina | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+{% include "office/_nav.html" %}
+<div class="mb-8 flex flex-wrap items-end justify-between gap-3">
+  <h1 class="text-3xl font-bold text-navy md:text-4xl">Resumen de la oficina</h1>
+  <a href="{% url 'office:publish_start' %}" class="inline-flex items-center gap-1.5 rounded-full bg-amber px-5 py-2.5 text-sm font-semibold text-charcoal hover:bg-amber-600">{% icon 'plus' 'ic ic-sm' %}Publicar para un cliente</a>
+</div>
+<dl class="grid gap-4 sm:grid-cols-3">
+  <div class="rounded-2xl bg-sand p-5"><dt class="text-sm text-charcoal/60">Cobrado hoy</dt><dd class="mt-1 font-display text-3xl font-bold text-navy tnum">{{ collected_today|xaf_number }} XAF</dd><dd class="text-sm text-charcoal/55">{{ collected_today_n }} cobro{{ collected_today_n|pluralize:"s" }}</dd></div>
+  <div class="rounded-2xl bg-sand p-5"><dt class="text-sm text-charcoal/60">Cobros pendientes</dt><dd class="mt-1 font-display text-3xl font-bold text-navy tnum">{{ pending_count }}</dd></div>
+  <div class="rounded-2xl bg-sand p-5"><dt class="text-sm text-charcoal/60">Anuncios visibles</dt><dd class="mt-1 font-display text-3xl font-bold text-navy tnum">{{ active_count }}</dd></div>
+</dl>
+<div class="mt-10 grid gap-10 lg:grid-cols-2">
+  <section>
+    <h2 class="mb-3 text-xl font-semibold text-navy">Pendientes de cobro</h2>
+    {% if pending %}
+      <ul class="divide-y divide-sand-200 border-y border-sand-200">
+        {% for p in pending %}<li class="flex items-center justify-between gap-3 py-3"><div class="min-w-0"><a href="{% url 'office:listing' p.listing.pk %}" class="block truncate font-medium hover:text-navy">{{ p.listing.title }}</a><p class="text-sm text-charcoal/55 tnum">{{ p.plan_name }} · {{ p.amount|xaf_number }} XAF</p></div><a href="{% url 'office:payments' %}" class="text-sm font-semibold text-navy hover:underline">Cobrar</a></li>{% endfor %}
+      </ul>
+    {% else %}<p class="rounded-xl bg-sand p-5 text-charcoal/65">No hay cobros pendientes.</p>{% endif %}
+  </section>
+  <section>
+    <h2 class="mb-3 text-xl font-semibold text-navy">Caducan en 7 días</h2>
+    {% if expiring %}
+      <ul class="divide-y divide-sand-200 border-y border-sand-200">
+        {% for l in expiring %}<li class="flex items-center justify-between gap-3 py-3"><a href="{% url 'office:listing' l.pk %}" class="min-w-0 flex-1 truncate font-medium hover:text-navy">{{ l.title }}</a><span class="text-sm text-charcoal/55 tnum">{{ l.expires_at|date:"d/m/Y" }}</span></li>{% endfor %}
+      </ul>
+    {% else %}<p class="rounded-xl bg-sand p-5 text-charcoal/65">Ningún anuncio caduca esta semana.</p>{% endif %}
+  </section>
+</div>
+<section class="mt-10">
+  <h2 class="mb-3 text-xl font-semibold text-navy">Últimos publicados en oficina</h2>
+  {% if recent %}
+    <ul class="divide-y divide-sand-200 border-y border-sand-200">
+      {% for l in recent %}<li class="flex items-center justify-between gap-3 py-3"><a href="{% url 'office:listing' l.pk %}" class="min-w-0 flex-1 truncate font-medium hover:text-navy">{{ l.title }}</a><span class="text-sm text-charcoal/55">{{ l.contact_name }} · {{ l.get_status_display }}</span></li>{% endfor %}
+    </ul>
+  {% else %}<p class="rounded-xl bg-sand p-5 text-charcoal/65">Aún no has publicado nada en nombre de un cliente.</p>{% endif %}
+</section>
+{% endblock %}

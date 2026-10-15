@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block title %}Anuncios | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+{% include "office/_nav.html" %}
+<h1 class="mb-6 text-3xl font-bold text-navy">Anuncios</h1>
+<form method="get" class="mb-6 flex flex-wrap gap-2">
+  <input type="search" name="q" value="{{ q }}" placeholder="Título, cliente, teléfono, correo o n.º" class="w-full rounded-lg border border-sand-200 px-3.5 py-2 text-sm sm:w-80" />
+  <select name="estado" class="rounded-lg border border-sand-200 px-3 py-2 text-sm"><option value="">Todos los estados</option>{% for v, l in statuses %}<option value="{{ v }}" {% if status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  <button class="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-white">Filtrar</button>
+</form>
+{% if page.object_list %}
+<ul class="divide-y divide-sand-200 border-y border-sand-200">
+  {% for l in page.object_list %}
+  <li class="flex flex-wrap items-center gap-x-4 gap-y-1 py-3.5">
+    <div class="min-w-0 flex-1">
+      <a href="{% url 'office:listing' l.pk %}" class="block truncate font-semibold hover:text-navy">{{ l.title }}</a>
+      <p class="text-sm text-charcoal/55">n.º {{ l.pk }} · {{ l.display_contact_name }}{% if l.is_office_listing %} · publicado en oficina{% endif %}</p>
+    </div>
+    <span class="text-sm text-charcoal/55 tnum">{% if l.expires_at %}hasta {{ l.expires_at|date:"d/m/Y" }}{% endif %}</span>
+    <span class="rounded-md px-2.5 py-1 text-sm font-medium {% if l.is_publicly_visible %}bg-green-50 text-green-800{% else %}bg-sand text-charcoal/65{% endif %}">{% if l.is_expired %}Expirado{% else %}{{ l.get_status_display }}{% endif %}</span>
+  </li>
+  {% endfor %}
+</ul>
+{% include "office/_pager.html" %}
+{% else %}<p class="rounded-xl bg-sand p-8 text-center text-charcoal/65">No hay anuncios con ese filtro.</p>{% endif %}
+{% endblock %}

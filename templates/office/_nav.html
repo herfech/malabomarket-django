@@ -1,0 +1,9 @@
+{% load listing_extras %}
+<nav aria-label="Panel de oficina" class="mb-8 flex flex-wrap items-center gap-1 border-b border-sand-200 pb-3 print:hidden">
+  {% url 'office:dashboard' as u_d %}{% url 'office:publish_start' as u_p %}{% url 'office:payments' as u_c %}{% url 'office:listings' as u_l %}{% url 'office:audit' as u_a %}
+  <a href="{{ u_d }}" class="rounded-full px-4 py-2 text-sm font-medium {% if request.path == u_d %}bg-navy text-white{% else %}text-charcoal/70 hover:bg-sand{% endif %}">Resumen</a>
+  <a href="{{ u_p }}" class="rounded-full px-4 py-2 text-sm font-medium {% if '/oficina/publicar/' in request.path %}bg-navy text-white{% else %}text-charcoal/70 hover:bg-sand{% endif %}">Publicar</a>
+  <a href="{{ u_c }}" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium {% if '/oficina/cobros/' in request.path %}bg-navy text-white{% else %}text-charcoal/70 hover:bg-sand{% endif %}">Cobros{% if pending_count %}<span class="rounded-full bg-amber px-2 py-0.5 text-xs font-semibold text-charcoal tnum">{{ pending_count }}</span>{% endif %}</a>
+  <a href="{{ u_l }}" class="rounded-full px-4 py-2 text-sm font-medium {% if '/oficina/anuncios/' in request.path %}bg-navy text-white{% else %}text-charcoal/70 hover:bg-sand{% endif %}">Anuncios</a>
+  {% if user.is_platform_admin %}<a href="{{ u_a }}" class="rounded-full px-4 py-2 text-sm font-medium {% if request.path == u_a %}bg-navy text-white{% else %}text-charcoal/70 hover:bg-sand{% endif %}">Auditoría</a>{% endif %}
+</nav>

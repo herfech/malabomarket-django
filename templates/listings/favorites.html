@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Mis favoritos | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+<h1 class="mb-8 text-3xl font-bold text-navy md:text-4xl">Mis favoritos</h1>
+{% if listings %}
+  <div class="grid grid-cols-1 gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">{% for l in listings %}{% include "listings/_card.html" %}{% endfor %}</div>
+{% else %}
+  <div class="rounded-2xl bg-sand p-12 text-center"><p class="font-display text-xl font-semibold text-navy">Aún no has guardado ningún anuncio</p><p class="mt-1 text-charcoal/65">Pulsa el corazón de un anuncio para encontrarlo aquí.</p></div>
+{% endif %}
+{% endblock %}

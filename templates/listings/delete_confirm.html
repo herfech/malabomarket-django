@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Eliminar anuncio | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-md py-8 text-center">
+  <h1 class="mb-2 text-2xl font-bold text-navy">¿Eliminar este anuncio?</h1>
+  <p class="mb-8 text-charcoal/65">«{{ listing.title }}» se borrará con sus fotos y no se puede recuperar.</p>
+  <form method="post" class="flex gap-3">{% csrf_token %}
+    <a href="{% url 'listings:my_listings' %}" class="flex-1 rounded-full border border-sand-200 py-3 text-sm font-semibold text-charcoal/75 hover:bg-sand">Cancelar</a>
+    <button class="flex-1 rounded-full bg-red-700 py-3 text-sm font-semibold text-white hover:bg-red-800">Eliminar anuncio</button>
+  </form>
+</div>
+{% endblock %}

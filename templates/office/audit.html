@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Auditoría | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+{% include "office/_nav.html" %}
+<h1 class="mb-6 text-3xl font-bold text-navy">Auditoría</h1>
+<form method="get" class="mb-6"><select name="accion" onchange="this.form.submit()" class="rounded-lg border border-sand-200 px-3 py-2 text-sm"><option value="">Todas las acciones</option>{% for a in actions %}<option value="{{ a }}" {% if a == action %}selected{% endif %}>{{ a }}</option>{% endfor %}</select></form>
+{% if page.object_list %}
+<div class="overflow-x-auto"><table class="w-full text-left text-sm">
+  <thead class="border-b border-sand-200 text-charcoal/60"><tr><th class="py-2 pr-4 font-medium">Fecha</th><th class="py-2 pr-4 font-medium">Quién</th><th class="py-2 pr-4 font-medium">Acción</th><th class="py-2 pr-4 font-medium">Anuncio</th><th class="py-2 font-medium">Detalle</th></tr></thead>
+  <tbody class="divide-y divide-sand-200">
+    {% for e in page.object_list %}<tr><td class="py-2.5 pr-4 tnum whitespace-nowrap">{{ e.created_at|date:"d/m/Y H:i" }}</td><td class="py-2.5 pr-4">{{ e.user_label }}</td><td class="py-2.5 pr-4">{{ e.action }}</td><td class="py-2.5 pr-4 tnum">{{ e.listing_id_ref|default:"—" }}</td><td class="py-2.5 text-charcoal/70">{{ e.detail }}</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% include "office/_pager.html" %}
+{% else %}<p class="rounded-xl bg-sand p-8 text-center text-charcoal/65">Sin registros todavía.</p>{% endif %}
+{% endblock %}

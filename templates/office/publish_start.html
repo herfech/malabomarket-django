@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block title %}Publicar para un cliente | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+{% include "office/_nav.html" %}
+<div class="mx-auto max-w-3xl">
+  <h1 class="text-3xl font-bold text-navy">Publicar para un cliente</h1>
+  <p class="mt-2 text-charcoal/65">El cliente no necesita cuenta. Elige la categoría y escribe sus datos de contacto.</p>
+  <div class="mt-8 grid gap-3 sm:grid-cols-3">
+    {% for slug, label, icon_name in options %}
+      <a href="{% url 'office:publish' slug %}" class="flex flex-col gap-10 rounded-2xl border border-sand-200 p-6 transition-colors hover:border-navy hover:bg-sand"><span class="text-navy">{% icon icon_name 'ic ic-lg' %}</span><span class="font-display text-xl font-semibold text-navy">{{ label }}</span></a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

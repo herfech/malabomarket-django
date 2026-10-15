@@ -1,0 +1,9 @@
+{# Selección única en forma de "pastillas". Uso: {% include "components/_pills.html" with field=f.combustible variant="amber" full=True %} #}
+<div class="flex {% if not full %}flex-wrap{% endif %} gap-2" data-pills>
+  {% for value, label in field.field.choices %}{% if value %}
+    <label class="{% if full %}flex-1{% endif %} cursor-pointer">
+      <input type="radio" name="{{ field.html_name }}" value="{{ value }}" class="peer sr-only" {% if field.value == value %}checked{% endif %} />
+      <span class="block rounded-full border border-sand-200 px-3 py-2 text-center text-sm font-medium text-charcoal/75 transition-colors hover:border-navy/40 {% if variant == 'amber' %}peer-checked:border-navy peer-checked:bg-navy{% else %}peer-checked:border-navy peer-checked:bg-navy{% endif %} peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-amber">{{ label }}</span>
+    </label>
+  {% endif %}{% endfor %}
+</div>

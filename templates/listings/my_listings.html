@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block title %}Mis anuncios | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+<div class="mb-8 flex flex-wrap items-end justify-between gap-3">
+  <h1 class="text-3xl font-bold text-navy md:text-4xl">Mis anuncios</h1>
+  <a href="{% url 'listings:publish_start' %}" class="inline-flex items-center gap-1.5 rounded-full bg-amber px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-amber-600">{% icon 'plus' 'ic ic-sm' %}Publicar anuncio</a>
+</div>
+{% if listings %}
+  <ul class="divide-y divide-sand-200 border-y border-sand-200">
+    {% for listing in listings %}
+      <li class="flex items-center gap-4 py-4">
+        <div class="h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-sand-200">{% with c=listing.cover_image %}{% if c %}<img src="{{ c.image.url }}" alt="" class="h-full w-full object-cover" />{% endif %}{% endwith %}</div>
+        <div class="min-w-0 flex-1">
+          <a href="{{ listing.get_absolute_url }}" class="block truncate font-semibold text-charcoal hover:text-navy">{{ listing.title }}</a>
+          <p class="text-sm text-charcoal/55 tnum">{{ listing.get_category_display }} · {{ listing.get_operation_type_display }} · {{ listing|price }}</p>
+          {% if listing.payment_status == 'pendiente' %}<p class="mt-0.5 text-sm font-medium text-amber-600">Pendiente de pago en la oficina para publicarse</p>
+          {% elif listing.is_expired or listing.status == 'expirado' %}<p class="mt-0.5 text-sm font-medium text-red-700">Caducado. Renuévalo en la oficina.</p>
+          {% elif listing.expires_at %}<p class="mt-0.5 text-sm text-charcoal/50 tnum">Visible hasta el {{ listing.expires_at|date:"d/m/Y" }} · Plan {{ listing.get_plan_display }}</p>{% endif %}
+        </div>
+        <span class="hidden rounded-md px-2.5 py-1 text-sm font-medium sm:inline {% if listing.status == 'activo' %}bg-green-50 text-green-800{% else %}bg-sand text-charcoal/65{% endif %}">{{ listing.get_status_display }}</span>
+        <a href="{% url 'listings:delete' listing.pk %}" class="text-sm font-medium text-red-700 hover:underline">Eliminar</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="rounded-2xl bg-sand p-12 text-center"><p class="font-display text-xl font-semibold text-navy">Todavía no has publicado nada</p><p class="mt-1 text-charcoal/65">Tu primer anuncio está a unos minutos.</p></div>
+{% endif %}
+{% endblock %}

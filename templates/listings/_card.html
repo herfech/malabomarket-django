@@ -1,0 +1,31 @@
+{% load listing_extras %}
+<article class="group relative">
+  <a href="{{ l.get_absolute_url }}" class="block">
+    <div class="relative aspect-[4/3] overflow-hidden rounded-xl bg-sand-200">
+      {% with cover=l.cover_image %}
+        {% if cover %}<img src="{{ cover.image.url }}" alt="{{ l.title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+        {% else %}<div class="flex h-full w-full flex-col items-center justify-center gap-1 text-charcoal/35">{% if l.category == 'coche' %}{% icon 'car' 'ic ic-lg' %}{% elif l.category == 'casa' %}{% icon 'home' 'ic ic-lg' %}{% else %}{% icon 'land' 'ic ic-lg' %}{% endif %}<span class="text-xs">Sin fotos</span></div>{% endif %}
+      {% endwith %}
+      {% if l.is_premium %}<span class="absolute left-2.5 top-2.5 rounded-md bg-amber px-2 py-1 text-xs font-semibold text-charcoal">Destacado</span>{% endif %}
+      <span class="absolute bottom-2.5 left-2.5 rounded-md bg-charcoal/80 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">{{ l.get_operation_type_display }}</span>
+    </div>
+    <div class="pt-3">
+      <p class="font-display text-[1.3rem] font-semibold leading-tight text-navy tnum">{{ l|price }}{% if l.operation_type == 'alquiler' %}<span class="font-sans text-sm font-normal text-charcoal/50"> al mes</span>{% endif %}</p>
+      <h3 class="mt-1 truncate font-sans text-[0.95rem] font-medium tracking-normal text-charcoal">{{ l.title }}</h3>
+      {% with d=l.details %}{% if d %}
+        <p class="mt-1.5 flex flex-wrap gap-x-3 text-sm text-charcoal/60 tnum">
+          {% if l.category == 'coche' %}<span>{{ d.year }}</span><span>{{ d.mileage_km|xaf_number }} km</span><span>{{ d.get_transmission_display }}</span>
+          {% elif l.category == 'casa' %}<span>{{ d.bedrooms }} hab.</span><span>{{ d.bathrooms }} baños</span><span>{{ d.area_m2|floatformat:"-1" }} m²</span>
+          {% else %}<span>{{ d.area_m2|floatformat:"-1" }} m²</span><span>{{ d.get_land_use_display }}</span>{% endif %}
+        </p>
+      {% endif %}{% endwith %}
+      <p class="mt-1.5 flex items-center gap-1 text-sm text-charcoal/50">{% icon 'pin' 'ic ic-sm' %}<span class="truncate">{{ l.city }}{% if l.address_zone %}, {{ l.address_zone }}{% endif %}</span></p>
+    </div>
+  </a>
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'listings:toggle_favorite' l.pk %}" class="absolute right-2.5 top-2.5">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}" />
+      <button type="submit" aria-label="{% if l.pk in favorite_ids %}Quitar de favoritos{% else %}Añadir a favoritos{% endif %}" class="flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-colors {% if l.pk in favorite_ids %}bg-amber text-charcoal{% else %}bg-white/95 text-charcoal/70 hover:text-navy{% endif %}"><svg class="ic ic-sm" {% if l.pk in favorite_ids %}style="fill:currentColor"{% endif %} aria-hidden="true"><use href="#i-heart"/></svg></button>
+    </form>
+  {% endif %}
+</article>

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block content_full %}
+<section class="bg-sand">
+  <div class="container-page grid items-center gap-10 py-12 md:py-16 lg:grid-cols-12 lg:gap-12 lg:py-20">
+    <div class="lg:col-span-7">
+      <h1 class="rise max-w-2xl text-[2.35rem] font-bold leading-[1.04] text-navy sm:text-5xl lg:text-[3.6rem]">Coches, casas y terrenos de vendedores reales en Guinea Ecuatorial</h1>
+      <p class="rise rise-2 mt-5 max-w-lg text-lg leading-relaxed text-charcoal/70">Compara precios en XAF, mira todas las fotos y escribe al vendedor por WhatsApp.</p>
+
+      <form id="hero-search" action="{% url 'listings:search' %}" method="get" class="rise rise-3 mt-8 rounded-2xl bg-white p-2 shadow-lift">
+        <div class="flex gap-1 px-1 pt-1 text-sm font-medium" role="tablist" aria-label="Qué buscas">
+          <label class="cursor-pointer"><input type="radio" name="tab" value="" class="peer sr-only" checked /><span class="block rounded-lg px-3.5 py-2 text-charcoal/60 peer-checked:bg-sand peer-checked:text-navy peer-focus-visible:ring-2 peer-focus-visible:ring-amber">Todo</span></label>
+          <label class="cursor-pointer"><input type="radio" name="tab" value="{% url 'listings:category' 'coches' %}" class="peer sr-only" /><span class="block rounded-lg px-3.5 py-2 text-charcoal/60 peer-checked:bg-sand peer-checked:text-navy peer-focus-visible:ring-2 peer-focus-visible:ring-amber">Coches</span></label>
+          <label class="cursor-pointer"><input type="radio" name="tab" value="{% url 'listings:category' 'casas' %}" class="peer sr-only" /><span class="block rounded-lg px-3.5 py-2 text-charcoal/60 peer-checked:bg-sand peer-checked:text-navy peer-focus-visible:ring-2 peer-focus-visible:ring-amber">Casas</span></label>
+          <label class="cursor-pointer"><input type="radio" name="tab" value="{% url 'listings:category' 'terrenos' %}" class="peer sr-only" /><span class="block rounded-lg px-3.5 py-2 text-charcoal/60 peer-checked:bg-sand peer-checked:text-navy peer-focus-visible:ring-2 peer-focus-visible:ring-amber">Terrenos</span></label>
+        </div>
+        <div class="mt-1 grid grid-cols-2 gap-2 p-1 sm:grid-cols-[1fr_1fr_auto]">
+          <input name="q" aria-label="Palabra clave" placeholder="Toyota, 3 habitaciones, solar…" class="col-span-full w-full rounded-lg border border-sand-200 px-4 py-3 text-[0.95rem] placeholder:text-charcoal/40 focus:border-navy focus:outline-none" />
+          <select name="ciudad" aria-label="Ciudad" class="w-full rounded-lg border border-sand-200 bg-white px-3 py-3 text-[0.95rem] focus:border-navy focus:outline-none"><option value="">Todo el país</option>{% for c in cities %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}</select>
+          <select name="operacion" aria-label="Operación" class="w-full rounded-lg border border-sand-200 bg-white px-3 py-3 text-[0.95rem] focus:border-navy focus:outline-none"><option value="">Venta o alquiler</option><option value="venta">Venta</option><option value="alquiler">Alquiler</option></select>
+          <button class="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-6 py-3 text-[0.95rem] sm:col-span-1 font-semibold text-white transition-colors hover:bg-navy-700">{% icon 'search' 'ic ic-sm' %}Buscar</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="hidden lg:col-span-5 lg:block" aria-label="Anuncios recientes">
+      {% if hero %}
+        <div class="grid grid-cols-2 gap-3">
+          {% for l in hero %}
+            <a href="{{ l.get_absolute_url }}" class="group relative block overflow-hidden rounded-2xl bg-sand-200 {% if forloop.first %}row-span-2 aspect-[3/5]{% else %}aspect-[4/3]{% endif %}">
+              {% with c=l.cover_image %}{% if c %}<img src="{{ c.image.url }}" alt="{{ l.title }}" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />{% endif %}{% endwith %}
+              <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-charcoal/85 to-transparent p-3.5 pt-12 text-white">
+                <span class="block font-display text-lg font-semibold tnum">{{ l|price }}</span>
+                <span class="block truncate text-sm text-white/80">{{ l.title }}</span>
+              </span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="grid aspect-[5/4] place-items-center rounded-2xl bg-sand-200 text-center text-charcoal/50"><div>{% icon 'car' 'ic ic-lg' %}<p class="mt-2 text-sm">Los anuncios con fotos aparecerán aquí.</p></div></div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="container-page grid gap-3 py-10 sm:grid-cols-3 md:py-14">
+  <a href="{% url 'listings:category' 'coches' %}" class="group flex min-h-[10.5rem] flex-col justify-between rounded-2xl bg-navy p-6 text-white transition-colors hover:bg-navy-700">
+    <span class="flex items-start justify-between"><span class="font-display text-5xl font-bold tnum">{{ counts.coche|default:0 }}</span>{% icon 'car' 'ic ic-lg opacity-70' %}</span>
+    <span><span class="block font-display text-xl font-semibold">Coches</span><span class="text-sm text-white/70">Nuevos, usados e importados</span></span>
+  </a>
+  <a href="{% url 'listings:category' 'casas' %}" class="group flex min-h-[10.5rem] flex-col justify-between rounded-2xl bg-amber p-6 text-charcoal transition-colors hover:bg-amber-600">
+    <span class="flex items-start justify-between"><span class="font-display text-5xl font-bold tnum">{{ counts.casa|default:0 }}</span>{% icon 'home' 'ic ic-lg opacity-70' %}</span>
+    <span><span class="block font-display text-xl font-semibold">Casas y apartamentos</span><span class="text-sm text-charcoal/70">En venta y en alquiler</span></span>
+  </a>
+  <a href="{% url 'listings:category' 'terrenos' %}" class="group flex min-h-[10.5rem] flex-col justify-between rounded-2xl bg-sand-200 p-6 text-charcoal transition-colors hover:bg-[#DCE2DE]">
+    <span class="flex items-start justify-between"><span class="font-display text-5xl font-bold tnum">{{ counts.terreno|default:0 }}</span>{% icon 'land' 'ic ic-lg opacity-70' %}</span>
+    <span><span class="block font-display text-xl font-semibold">Terrenos</span><span class="text-sm text-charcoal/65">Urbanos, rurales y comerciales</span></span>
+  </a>
+</section>
+
+{% if featured %}
+<section class="container-page pb-12">
+  <div class="mb-6 flex items-end justify-between"><h2 class="text-2xl font-bold text-navy md:text-3xl">Anuncios destacados</h2></div>
+  <div class="grid grid-cols-1 gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">{% for l in featured %}{% include "listings/_card.html" %}{% endfor %}</div>
+</section>
+{% endif %}
+
+<section class="container-page pb-16">
+  <div class="mb-6 flex items-end justify-between"><h2 class="text-2xl font-bold text-navy md:text-3xl">Publicados recientemente</h2><a href="{% url 'listings:search' %}" class="text-sm font-semibold text-navy hover:text-amber-600">Ver todos</a></div>
+  {% if latest %}
+    <div class="grid grid-cols-1 gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">{% for l in latest %}{% include "listings/_card.html" %}{% endfor %}</div>
+  {% else %}
+    <div class="rounded-2xl bg-sand p-12 text-center"><p class="font-display text-lg font-semibold text-navy">Aún no hay anuncios</p><p class="mt-1 text-sm text-charcoal/60">Publica el primero y aparecerá aquí.</p></div>
+  {% endif %}
+</section>
+
+<section class="bg-sand">
+  <div class="container-page grid gap-10 py-14 md:py-20 lg:grid-cols-12">
+    <div class="lg:col-span-5">
+      <h2 class="text-3xl font-bold leading-tight text-navy md:text-4xl">Vende más rápido, a gente que ya está buscando</h2>
+      <p class="mt-4 max-w-md text-charcoal/70">Registrarte es gratis. Pagas solo si eliges un plan para aparecer primero.</p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a href="{% url 'listings:publish_start' %}" class="inline-flex items-center gap-2 rounded-full bg-amber px-6 py-3 text-sm font-semibold text-charcoal transition-colors hover:bg-amber-600">{% icon 'plus' 'ic ic-sm' %}Publicar anuncio</a>
+        <a href="https://wa.me/{{ SITE.whatsapp }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full border border-navy/25 px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-white">{% icon 'whatsapp' 'ic ic-sm' %}Hablar con la oficina</a>
+      </div>
+    </div>
+    <ol class="divide-y divide-charcoal/10 lg:col-span-7 lg:pl-8">
+      <li class="flex gap-5 pb-6"><span class="font-display text-3xl font-bold text-amber-600 tnum">1</span><div><h3 class="text-lg font-semibold text-navy">Crea tu cuenta</h3><p class="mt-1 text-charcoal/70">Es gratis y solo necesitas tu correo y tu teléfono.</p></div></li>
+      <li class="flex gap-5 py-6"><span class="font-display text-3xl font-bold text-amber-600 tnum">2</span><div><h3 class="text-lg font-semibold text-navy">Elige tu plan</h3><p class="mt-1 text-charcoal/70">Básico es gratis. Destacado y Premium te colocan por delante de los demás anuncios.</p></div></li>
+      <li class="flex gap-5 pt-6"><span class="font-display text-3xl font-bold text-amber-600 tnum">3</span><div><h3 class="text-lg font-semibold text-navy">Publica tú o ven a la oficina</h3><p class="mt-1 text-charcoal/70">Sube tus fotos desde el móvil, o tráenos los datos y publicamos por ti. Pagas con tarjeta o en efectivo.</p></div></li>
+    </ol>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // La pestaña elegida decide a qué página va la búsqueda (sin JS va a "Todo").
+  (function () {
+    var f = document.getElementById('hero-search'), base = f.getAttribute('action');
+    f.addEventListener('submit', function () {
+      var t = f.querySelector('input[name=tab]:checked');
+      f.setAttribute('action', t && t.value ? t.value : base);
+      if (t) t.disabled = true;
+    });
+  })();
+</script>
+{% endblock %}

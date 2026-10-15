@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block title %}Publicar {{ category_label }} | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex" />{% endblock %}
+{% block content %}
+{% include "office/_nav.html" %}
+<div class="mx-auto max-w-2xl">
+  <a href="{% url 'office:publish_start' %}" class="mb-4 inline-flex items-center gap-1 text-sm font-medium text-charcoal/60 hover:text-navy">{% icon 'left' 'ic ic-sm' %}Cambiar categoría</a>
+  <h1 class="mb-8 text-3xl font-bold text-navy">Publicar {{ category_label|lower }} para un cliente</h1>
+  <form method="post" enctype="multipart/form-data" class="space-y-10">
+    {% csrf_token %}
+    <section>
+      <h2 class="mb-4 border-b border-sand-200 pb-3 text-xl font-semibold text-navy">Datos del cliente</h2>
+      <div class="space-y-4">
+        {% for field in client_form %}
+          <div><label class="mb-1.5 block text-sm font-medium text-charcoal">{{ field.label }}</label>{{ field }}{% for e in field.errors %}<p class="mt-1 text-sm text-red-700">{{ e }}</p>{% endfor %}</div>
+        {% endfor %}
+      </div>
+    </section>
+    <section>
+      <h2 class="mb-4 border-b border-sand-200 pb-3 text-xl font-semibold text-navy">Datos básicos</h2>
+      <div class="space-y-4">
+        {% for field in listing_form %}
+          <div><label class="mb-1.5 block text-sm font-medium text-charcoal">{{ field.label }}</label>{{ field }}{% for e in field.errors %}<p class="mt-1 text-sm text-red-700">{{ e }}</p>{% endfor %}</div>
+        {% endfor %}
+      </div>
+    </section>
+    <section>
+      <h2 class="mb-4 border-b border-sand-200 pb-3 text-xl font-semibold text-navy">Características</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {% for field in detail_form %}
+          {% if field.field.widget.input_type == 'checkbox' %}
+            <label class="flex items-center gap-2.5 text-[0.95rem]">{{ field }} {{ field.label }}</label>
+          {% else %}
+            <div><label class="mb-1.5 block text-sm font-medium text-charcoal">{{ field.label }}</label>{{ field }}{% for e in field.errors %}<p class="mt-1 text-sm text-red-700">{{ e }}</p>{% endfor %}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </section>
+    <section>
+      <h2 class="mb-1 text-xl font-semibold text-navy">Plan de publicación</h2>
+      <p class="mb-4 border-b border-sand-200 pb-3 text-charcoal/65">Los planes de pago se cobran en efectivo en la oficina.</p>
+      <div class="grid gap-3 sm:grid-cols-3">
+        {% for p in plans %}
+          <label class="cursor-pointer">
+            <input type="radio" name="plan" value="{{ p.code }}" class="peer sr-only" {% if p.code == selected_plan %}checked{% endif %} />
+            <span class="flex h-full flex-col gap-1.5 rounded-2xl border-2 border-sand-200 p-4 transition-colors hover:border-navy/40 peer-checked:border-navy peer-checked:bg-sand peer-focus-visible:ring-2 peer-focus-visible:ring-amber">
+              <span class="font-display text-lg font-semibold text-navy">{{ p.name }}</span>
+              <span class="font-display text-xl font-bold tnum">{% if p.is_free %}Gratis{% else %}{{ p.price|xaf_number }} XAF{% endif %}</span>
+              <span class="text-sm text-charcoal/65">{{ p.description }}</span>
+              <span class="text-sm text-charcoal/50">Dura {{ p.duration_days }} días</span>
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+      <label class="mt-4 flex items-start gap-2.5 rounded-xl bg-sand p-4 text-[0.95rem]"><input type="checkbox" name="paid_now" {% if paid_now %}checked{% endif %} class="mt-1 h-4 w-4 rounded border-gray-300 text-navy" /><span><strong class="font-semibold">El cliente paga ahora en efectivo.</strong><br /><span class="text-charcoal/65">Se registra el cobro, se genera el recibo y el anuncio se publica. Si lo dejas sin marcar, queda en borrador hasta que confirmes el cobro. No aplica al plan gratuito.</span></span></label>
+    </section>
+    <section>
+      <h2 class="mb-1 text-xl font-semibold text-navy">Fotos</h2>
+      <p class="mb-4 border-b border-sand-200 pb-3 text-charcoal/65">Hasta {{ max_photos }} fotos. La primera será la portada.</p>
+      <label for="images" class="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-sand-200 py-10 text-charcoal/60 transition-colors hover:border-navy hover:text-navy">
+        {% icon 'upload' 'ic ic-lg' %}<span class="font-medium">Elegir fotos</span><span id="photo-count" class="text-sm tnum">0/{{ max_photos }}</span>
+      </label>
+      <input id="images" type="file" name="images" accept="image/*" multiple required class="sr-only" />
+      <div id="previews" class="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4"></div>
+    </section>
+    <button type="submit" class="w-full rounded-full bg-amber py-3.5 font-semibold text-charcoal transition-colors hover:bg-amber-600">Guardar y publicar</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  var input = document.getElementById('images'), box = document.getElementById('previews'), cnt = document.getElementById('photo-count'), MAX = {{ max_photos }};
+  input.addEventListener('change', function () {
+    box.innerHTML = ''; var files = Array.from(input.files).slice(0, MAX); cnt.textContent = files.length + '/' + MAX;
+    files.forEach(function (f, i) {
+      var d = document.createElement('div'); d.className = 'relative aspect-square overflow-hidden rounded-xl bg-sand';
+      var im = document.createElement('img'); im.className = 'h-full w-full object-cover'; im.src = URL.createObjectURL(f); d.appendChild(im);
+      if (i === 0) { var t = document.createElement('span'); t.textContent = 'Portada'; t.className = 'absolute left-1.5 top-1.5 rounded-md bg-amber px-2 py-0.5 text-xs font-semibold text-charcoal'; d.appendChild(t); }
+      box.appendChild(d);
+    });
+  });
+</script>
+{% endblock %}

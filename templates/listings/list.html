@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load listing_extras %}
+{% block title %}{{ category_label }}{% if form.cleaned_data.ciudad %} en {{ form.cleaned_data.ciudad }}{% endif %}{% if page.number > 1 %} (página {{ page.number }}){% endif %} | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block meta_description %}{{ category_label }} en Guinea Ecuatorial: {{ total }} anuncio{{ total|pluralize }} con fotos, precios en XAF y contacto directo.{% endblock %}
+{% block og_title %}{{ category_label }} | {{ SITE.name_first }}{{ SITE.name_second }}{% endblock %}
+{% block head_extra %}{% if has_filters or page.number > 1 %}<meta name="robots" content="noindex,follow" />{% endif %}{% endblock %}
+
+{% block content %}
+{% with f=form %}
+<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  <div>
+    <h1 class="text-3xl font-bold text-navy md:text-4xl">{{ category_label }}</h1>
+    <p class="mt-1 text-charcoal/60 tnum">{{ total }} anuncio{{ total|pluralize }}</p>
+  </div>
+  <select name="orden" form="filter-form" onchange="this.form.submit()" aria-label="Ordenar" class="rounded-lg border border-sand-200 bg-white px-3 py-2.5 text-sm text-charcoal focus:border-navy focus:outline-none">
+    {% for value, label in f.fields.orden.choices %}<option value="{{ value }}" {% if f.orden.value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+</div>
+
+<div class="flex flex-col gap-6 lg:flex-row lg:gap-10">
+  <button type="button" id="filters-open" class="flex w-full items-center justify-center gap-2 rounded-full border border-navy/25 py-3 text-sm font-semibold text-navy lg:hidden">{% icon 'filters' 'ic ic-sm' %}Filtros</button>
+
+  <div id="filters-panel" class="fixed inset-0 z-50 hidden items-end bg-charcoal/50 lg:static lg:z-auto lg:block lg:w-64 lg:shrink-0 lg:bg-transparent">
+    <aside class="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 lg:max-h-none lg:overflow-visible lg:rounded-none lg:p-0 lg:pr-3">
+      <div class="mb-5 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-navy">Filtros</h2>
+        <button type="button" id="filters-close" aria-label="Cerrar" class="lg:hidden">{% icon 'x' 'ic text-charcoal/60' %}</button>
+      </div>
+      <form method="get" id="filter-form" class="space-y-5 [&>*:not(:first-child)]:border-t [&>*:not(:first-child)]:border-sand-200 [&>*:not(:first-child)]:pt-5">
+        <div><label class="mb-2 block text-sm font-semibold text-charcoal">Buscar</label>{{ f.q }}</div>
+        <div role="group"><p class="mb-2 text-sm font-semibold text-charcoal">Operación</p>{% include "components/_pills.html" with field=f.operacion full=True %}</div>
+        <div><label class="mb-2 block text-sm font-semibold text-charcoal">Ciudad</label>{{ f.ciudad }}</div>
+        <div><label class="mb-2 block text-sm font-semibold text-charcoal">Precio (XAF)</label>{% include "components/_range.html" with min=f.precio_min max=f.precio_max %}</div>
+
+        {% if category == 'coche' %}
+          <div><label class="mb-2 block text-sm font-semibold text-charcoal">Marca</label>{{ f.marca }}</div>
+          <div><label class="mb-2 block text-sm font-semibold text-charcoal">Año</label>{% include "components/_range.html" with min=f.anio_min max=f.anio_max %}</div>
+          <div><label class="mb-2 block text-sm font-semibold text-charcoal">Kilometraje máximo</label>{{ f.km_max }}</div>
+          <div role="group"><p class="mb-2 text-sm font-semibold text-charcoal">Combustible</p>{% include "components/_pills.html" with field=f.combustible variant="amber" %}</div>
+          <div role="group"><p class="mb-2 text-sm font-semibold text-charcoal">Transmisión</p>{% include "components/_pills.html" with field=f.transmision full=True %}</div>
+          <div role="group"><p class="mb-2 text-sm font-semibold text-charcoal">Condición</p>{% include "components/_pills.html" with field=f.condicion full=True %}</div>
+        {% elif category == 'casa' %}
+          <div role="group"><p class="mb-2 text-sm font-semibold text-charcoal">Tipo</p>{% include "components/_pills.html" with field=f.tipo variant="amber" %}</div>
+          <div><label class="mb-2 block text-sm font-semibold text-charcoal">Habitaciones (mín.)</label>{{ f.hab_min }}</div>
+          <div><label class="mb-2 block text-sm font-semibold text-charcoal">Baños (mín.)</label>{{ f.banos_min }}</div>
+          <div><label class="mb-2 block text-sm font-semibold text-charcoal">Superficie (m²)</label>{% include "components/_range.html" with min=f.m2_min max=f.m2_max %}</div>
+          <div class="space-y-2 text-sm">
+            <label class="flex items-center gap-2">{{ f.amueblado }} Amueblado</label>
+            <label class="flex items-center gap-2">{{ f.parqueo }} Parqueo</label>
+            <label class="flex items-center gap-2">{{ f.jardin }} Jardín</label>
+          </div>
+        {% elif category == 'terreno' %}
+          <div role="group"><p class="mb-2 text-sm font-semibold text-charcoal">Uso de suelo</p>{% include "components/_pills.html" with field=f.uso variant="amber" %}</div>
+          <div><label class="mb-2 block text-sm font-semibold text-charcoal">Superficie (m²)</label>{% include "components/_range.html" with min=f.m2_min max=f.m2_max %}</div>
+          <div class="space-y-2 text-sm">
+            <label class="flex items-center gap-2">{{ f.titulo }} Con título de propiedad</label>
+            <label class="flex items-center gap-2">{{ f.cercado }} Cercado</label>
+          </div>
+        {% endif %}
+
+        <div class="flex gap-2 pt-2">
+          <a href="{{ request.path }}" class="flex-1 rounded-full border border-sand-200 py-2.5 text-center text-sm font-medium text-charcoal/70 transition-colors hover:bg-sand">Limpiar</a>
+          <button type="submit" class="flex-1 rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition-colors hover:bg-navy-700">Aplicar</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+
+  <div class="flex-1">
+    {% if page.object_list %}
+      <div class="grid grid-cols-1 gap-x-5 gap-y-9 sm:grid-cols-2 xl:grid-cols-3">{% for l in page.object_list %}{% include "listings/_card.html" %}{% endfor %}</div>
+      {% if page.paginator.num_pages > 1 %}
+        <nav class="mt-8 flex items-center justify-center gap-3" aria-label="Paginación">
+          {% if page.has_previous %}<a rel="prev" href="{% querystring page=page.previous_page_number %}" class="rounded-full border border-sand-200 px-5 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-sand">Anterior</a>{% endif %}
+          <span class="text-sm text-charcoal/60">Página {{ page.number }} de {{ page.paginator.num_pages }}</span>
+          {% if page.has_next %}<a rel="next" href="{% querystring page=page.next_page_number %}" class="rounded-full border border-sand-200 px-5 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-sand">Siguiente</a>{% endif %}
+        </nav>
+      {% endif %}
+    {% else %}
+      <div class="rounded-2xl bg-sand p-12 text-center"><p class="font-display text-xl font-semibold text-navy">No hay anuncios con estos filtros</p><p class="mt-1 text-charcoal/60">Quita algún filtro o <a class="font-semibold text-navy underline" href="{{ request.path }}">empieza de nuevo</a>.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Hoja de filtros en móvil
+  (function () {
+    var panel = document.getElementById('filters-panel');
+    function setOpen(o) { panel.classList.toggle('hidden', !o); panel.classList.toggle('flex', o); }
+    document.getElementById('filters-open').addEventListener('click', function () { setOpen(true); });
+    document.getElementById('filters-close').addEventListener('click', function () { setOpen(false); });
+    panel.addEventListener('click', function (e) { if (e.target === panel) setOpen(false); });
+    // Pastillas: tocar de nuevo una ya activa la desmarca (igual que antes)
+    document.querySelectorAll('[data-pills] label').forEach(function (lab) {
+      var r = lab.querySelector('input');
+      lab.addEventListener('mousedown', function () { r.dataset.was = r.checked ? '1' : ''; });
+      r.addEventListener('click', function () { if (r.dataset.was) { r.checked = false; r.dataset.was = ''; } });
+    });
+  })();
+</script>
+{% endblock %}
